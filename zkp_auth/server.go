@@ -1,14 +1,13 @@
-package main
+package zkp_auth
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
 	"github.com/google/uuid"
-	"google.golang.org/grpc"
-	"log"
 	"math/rand"
-	"net"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type loginSession struct {
@@ -30,7 +29,7 @@ type authServer struct {
 	params        protocolParams
 }
 
-func (s *authServer) getProtocolparams(ctx context.Context) *protocolParams {
+func (s *authServer) GetProtocolparams(ctx context.Context) *protocolParams {
 	return &s.params
 }
 
@@ -48,6 +47,7 @@ func (s *authServer) CreateAuthenticationChallenge(ctx context.Context, req *Aut
 	// generate challenge c
 	c := rand.Int63()
 
+	fmt.Println("authId=%s, u=%s, r1=%d, r2=%d, c=%d\n", authId, req.GetUser(), req.GetR1(), req.GetR2(), c)
 	// persist user, r1, r2 and c in loginSession
 	s.loginSessions[authId] = &loginSession{
 		u:  req.GetUser(),
@@ -114,7 +114,7 @@ func insertRowIntoDB(dbPath string, user string, y1 int64, y2 int64) error {
 	}
 
 	// Insert the data into the table
-	_, err = db.Exec("INSERT INTO my_table (u, y1, y2) VALUES (?, ?, ?)",
+	_, err = db.Exec("INSERT INTO user_table (u, y1, y2) VALUES (?, ?, ?)",
 		user, y1, y2)
 	if err != nil {
 		return err
@@ -162,15 +162,12 @@ func pow(a, b int64) int64 {
 	return p
 }
 
-func main() {
-	lis, err := net.Listen("tcp", ":50051")
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+func NewServer(dbPath string, g, h, q int64) AuthServer {
+	pp := protocolParams{
+		g: g,
+		h: h,
+		q: q,
 	}
-	s := grpc.NewServer()
-	RegisterAuthServer(s, &authServer{})
-	fmt.Println("gRPC server is running on port 50051...")
-	if err := s.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
-	}
+	ls := make(map[uuid.UUID]*loginSession)
+	return &authServer{dbPath: dbPath, loginSessions: ls, params: pp}
 }

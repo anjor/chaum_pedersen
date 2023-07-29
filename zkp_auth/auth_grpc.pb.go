@@ -4,7 +4,7 @@
 // - protoc             v3.21.12
 // source: auth.proto
 
-package main
+package zkp_auth
 
 import (
 	context "context"

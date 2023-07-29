@@ -6,6 +6,13 @@ import (
 	"fmt"
 	"google.golang.org/grpc"
 	"log"
+	"math/rand"
+)
+
+const (
+	g int64 = 4
+	h int64 = 9
+	q int64 = 23
 )
 
 func main() {
@@ -17,23 +24,34 @@ func main() {
 
 	client := zkp_auth.NewAuthClient(conn)
 
+	// Register flow
+	user := "test_user"
+	var secret int64 = 1
+	y1 := zkp_auth.Pow(g, secret)
+	y2 := zkp_auth.Pow(h, secret)
+	fmt.Printf("y1=%d, y2=%d\n", y1, y2)
 	registerRequest := &zkp_auth.RegisterRequest{
-		User: "test_user",
-		Y1:   1,
-		Y2:   2,
+		User: user,
+		Y1:   y1,
+		Y2:   y2,
 	}
-
 	registerResponse, err := client.Register(context.Background(), registerRequest)
 	if err != nil {
 		log.Fatalf("Register failed: %v", err)
 	}
 	fmt.Println("Register Response:", registerResponse)
 
-	// Call the CreateAuthenticationChallenge RPC
+	// Login flow
+
+	// Commitment step
+	k := int64(rand.Intn(8))
+	r1 := zkp_auth.Pow(g, k)
+	r2 := zkp_auth.Pow(h, k)
+	fmt.Printf("k=%d, r1=%d, r2=%d\n", k, r1, r2)
 	challengeRequest := &zkp_auth.AuthenticationChallengeRequest{
-		User: "test_user",
-		R1:   789,
-		R2:   1011,
+		User: user,
+		R1:   r1,
+		R2:   r2,
 	}
 	challengeResponse, err := client.CreateAuthenticationChallenge(context.Background(), challengeRequest)
 	if err != nil {
@@ -41,11 +59,13 @@ func main() {
 	}
 	fmt.Println("Authentication Challenge Response:", challengeResponse)
 
-	// Call the VerifyAuthentication RPC
+	// Response step
+	s := k - challengeResponse.C*secret
 	verifyRequest := &zkp_auth.AuthenticationAnswerRequest{
 		AuthId: challengeResponse.GetAuthId(),
-		S:      1213,
+		S:      s,
 	}
+	fmt.Println("response: ", verifyRequest)
 	verifyResponse, err := client.VerifyAuthentication(context.Background(), verifyRequest)
 	if err != nil {
 		log.Fatalf("VerifyAuthentication failed: %v", err)

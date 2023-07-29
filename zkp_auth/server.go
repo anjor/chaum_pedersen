@@ -5,10 +5,11 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/google/uuid"
-	"math/rand"
-
 	_ "github.com/mattn/go-sqlite3"
+	"math/rand"
 )
+
+const base = 10
 
 type loginSession struct {
 	u  string
@@ -29,10 +30,6 @@ type authServer struct {
 	params        protocolParams
 }
 
-func (s *authServer) GetProtocolparams(ctx context.Context) *protocolParams {
-	return &s.params
-}
-
 func (s *authServer) Register(ctx context.Context, req *RegisterRequest) (*RegisterResponse, error) {
 	err := insertRowIntoDB(s.dbPath, req.GetUser(), req.GetY1(), req.GetY2())
 	if err != nil {
@@ -45,9 +42,9 @@ func (s *authServer) CreateAuthenticationChallenge(ctx context.Context, req *Aut
 	// generate auth id
 	authId := uuid.New()
 	// generate challenge c
-	c := rand.Int63()
+	c := int64(rand.Intn(8))
 
-	fmt.Println("authId=%s, u=%s, r1=%d, r2=%d, c=%d\n", authId, req.GetUser(), req.GetR1(), req.GetR2(), c)
+	fmt.Printf("authId=%s, u=%s, r1=%s, r2=%s, c=%d\n\n", authId, req.GetUser(), req.GetR1(), req.GetR2(), c)
 	// persist user, r1, r2 and c in loginSession
 	s.loginSessions[authId] = &loginSession{
 		u:  req.GetUser(),
@@ -84,8 +81,10 @@ func (s *authServer) VerifyAuthentication(ctx context.Context, req *Authenticati
 	}
 
 	// calculate g^s*y1^c and h^s*y2^c
-	expR1 := pow(s.params.g, req.S) * pow(y1, c)
-	expR2 := pow(s.params.h, req.S) * pow(y2, c)
+	expR1 := Pow(s.params.g, req.S) * Pow(y1, c)
+	expR2 := Pow(s.params.h, req.S) * Pow(y2, c)
+
+	fmt.Printf("r1 = %d, expR1=%d, r2=%d, expR2=%d\n", r1, expR1, r2, expR2)
 
 	if expR1 == r1 && expR2 == r2 {
 		sid := "session_" + uuid.New().String()
@@ -107,7 +106,7 @@ func insertRowIntoDB(dbPath string, user string, y1 int64, y2 int64) error {
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			u TEXT,
 			y1 INTEGER,
-			y2 INTEGER
+			y2 INTEGER 
 		);`)
 	if err != nil {
 		return err
@@ -147,19 +146,6 @@ func getRowByUser(dbPath, user string) (string, int64, int64, error) {
 	}
 
 	return retrievedUser, y1, y2, nil
-}
-
-// See Donald Knuth, The Art of Computer Programming, Volume 2, Section 4.6.3
-func pow(a, b int64) int64 {
-	var p int64 = 1
-	for b > 0 {
-		if b&1 != 0 {
-			p *= a
-		}
-		b >>= 1
-		a *= a
-	}
-	return p
 }
 
 func NewServer(dbPath string, g, h, q int64) AuthServer {

@@ -8,6 +8,12 @@ import (
 	"net"
 )
 
+const (
+	g int64 = 4
+	h int64 = 9
+	q int64 = 23
+)
+
 func main() {
 	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {
@@ -15,7 +21,7 @@ func main() {
 	}
 
 	s := grpc.NewServer()
-	authServer := zkp_auth.NewServer("./server.db", 4, 9, 23)
+	authServer := zkp_auth.NewServer("./server.db", g, h, q)
 	zkp_auth.RegisterAuthServer(s, authServer)
 
 	fmt.Println("gRPC server is running on port 50051...")

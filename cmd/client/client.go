@@ -26,7 +26,7 @@ func main() {
 
 	// Register flow
 	user := "test_user"
-	var secret int64 = 1
+	var secret int64 = 1 // assumed to be mod q
 	y1 := zkp_auth.Pow(g, secret)
 	y2 := zkp_auth.Pow(h, secret)
 	fmt.Printf("y1=%d, y2=%d\n", y1, y2)
@@ -44,7 +44,7 @@ func main() {
 	// Login flow
 
 	// Commitment step
-	k := int64(rand.Intn(8))
+	k := zkp_auth.Mod(rand.Int63()+1, q)
 	r1 := zkp_auth.Pow(g, k)
 	r2 := zkp_auth.Pow(h, k)
 	fmt.Printf("k=%d, r1=%d, r2=%d\n", k, r1, r2)
@@ -60,7 +60,7 @@ func main() {
 	fmt.Println("Authentication Challenge Response:", challengeResponse)
 
 	// Response step
-	s := k - challengeResponse.C*secret
+	s := zkp_auth.Mod(k-challengeResponse.C*secret, q)
 	verifyRequest := &zkp_auth.AuthenticationAnswerRequest{
 		AuthId: challengeResponse.GetAuthId(),
 		S:      s,

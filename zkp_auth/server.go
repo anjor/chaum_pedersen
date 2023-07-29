@@ -9,8 +9,6 @@ import (
 	"math/rand"
 )
 
-const base = 10
-
 type loginSession struct {
 	u  string
 	r1 int64
@@ -44,7 +42,7 @@ func (s *authServer) CreateAuthenticationChallenge(ctx context.Context, req *Aut
 	// generate challenge c
 	c := int64(rand.Intn(8))
 
-	fmt.Printf("authId=%s, u=%s, r1=%s, r2=%s, c=%d\n\n", authId, req.GetUser(), req.GetR1(), req.GetR2(), c)
+	fmt.Printf("authId=%s, u=%s, r1=%d, r2=%d, c=%d\n\n", authId, req.GetUser(), req.GetR1(), req.GetR2(), c)
 	// persist user, r1, r2 and c in loginSession
 	s.loginSessions[authId] = &loginSession{
 		u:  req.GetUser(),

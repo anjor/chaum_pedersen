@@ -23,5 +23,5 @@ This stands up a server listening on port `50051` providing three RPC methods de
 
 ### Client
 
-The [client](./zkp_auth/client.go) provides two simple functions `Register` and `Login` making it easy to integrate into any client-side code as demonstrated in the [wrapper code](./client/client.go)
+The [client](./zkp_auth/client.go) provides two simple functions `Register` and `Login` making it easy to integrate into any client-side code as demonstrated in the [wrapper code](./client/client.go).
 

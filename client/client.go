@@ -15,16 +15,24 @@ func main() {
 	defer conn.Close()
 
 	client := zkp_auth.NewAuthClient(conn)
-	user := "test_user"
+	user := "test_user_1"
 	secret := int64(10)
 
+	fmt.Println("Successful attempt started")
 	if err := success(client, user, secret); err != nil {
 		fmt.Printf("register and login should have succeded. Instead failed with error: %v\n", err)
 	}
+	fmt.Println("Successful attempt started succeeded")
+	fmt.Println()
 
+	user = "test_user_2"
+	secret = int64(100)
+
+	fmt.Println("Failed attempt started")
 	if err := fail(client, user, secret); err == nil {
 		fmt.Printf("register and login should have failed. Instead succeded")
 	}
+	fmt.Println("Failed attempt succeeded")
 
 }
 

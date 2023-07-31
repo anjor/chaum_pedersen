@@ -7,7 +7,7 @@ func Pow(a, b int64) int64 {
 }
 
 func Mod(a, m int64) int64 {
-	r := int64(math.Mod(float64(a), float64(m)))
+	r := a % m
 	if r < 0 {
 		return r + m
 	}

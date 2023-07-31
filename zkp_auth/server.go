@@ -8,6 +8,8 @@ import (
 	"math/rand"
 )
 
+const eps = 1.e-8
+
 type loginSession struct {
 	u  string
 	r1 int64
@@ -18,6 +20,7 @@ type loginSession struct {
 type protocolParams struct {
 	g int64
 	h int64
+	p int64
 	q int64
 }
 
@@ -28,10 +31,15 @@ type authServer struct {
 }
 
 func (s *authServer) Register(ctx context.Context, req *RegisterRequest) (*RegisterResponse, error) {
-	err := insertRowIntoDB(s.dbPath, req.GetUser(), req.GetY1(), req.GetY2())
+	user := req.GetUser()
+	y1 := req.GetY1()
+	y2 := req.GetY2()
+
+	err := insertRowIntoDB(s.dbPath, user, y1, y2)
 	if err != nil {
 		return nil, err
 	}
+
 	return &RegisterResponse{}, nil
 }
 
@@ -39,7 +47,7 @@ func (s *authServer) CreateAuthenticationChallenge(ctx context.Context, req *Aut
 	// generate auth id
 	authId := uuid.New()
 	// generate challenge c
-	c := int64(rand.Intn(8))
+	c := int64(rand.Intn(5)) + 1
 
 	fmt.Printf("authId=%s, u=%s, r1=%d, r2=%d, c=%d\n\n", authId, req.GetUser(), req.GetR1(), req.GetR2(), c)
 	// persist user, r1, r2 and c in loginSession
@@ -78,12 +86,12 @@ func (s *authServer) VerifyAuthentication(ctx context.Context, req *Authenticati
 	}
 
 	// calculate g^s*y1^c and h^s*y2^c
-	expR1 := Pow(s.params.g, req.S) * Pow(y1, c)
-	expR2 := Pow(s.params.h, req.S) * Pow(y2, c)
+	expR1 := Mod(Pow(s.params.g, req.S)*Pow(y1, c), p)
+	expR2 := Mod(Pow(s.params.h, req.S)*Pow(y2, c), p)
 
-	fmt.Printf("r1 = %d, expR1=%d, r2=%d, expR2=%d\n", r1, expR1, r2, expR2)
+	fmt.Printf("r1 = %v, expR1=%v, logR2=%v, expR2=%v\n", r1, expR1, r2, expR2)
 
-	if expR1 == r1 && expR2 == r2 {
+	if r1 == expR1 && r2 == expR2 {
 		sid := "session_" + uuid.New().String()
 		return &AuthenticationAnswerResponse{SessionId: sid}, nil
 	}

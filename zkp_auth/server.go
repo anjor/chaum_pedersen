@@ -8,8 +8,6 @@ import (
 	"math/rand"
 )
 
-const eps = 1.e-8
-
 type loginSession struct {
 	u  string
 	r1 int64
@@ -17,17 +15,9 @@ type loginSession struct {
 	c  int64
 }
 
-type protocolParams struct {
-	g int64
-	h int64
-	p int64
-	q int64
-}
-
 type authServer struct {
 	dbPath        string
 	loginSessions map[uuid.UUID]*loginSession // map from auth id to login session
-	params        protocolParams
 }
 
 func (s *authServer) Register(ctx context.Context, req *RegisterRequest) (*RegisterResponse, error) {
@@ -86,8 +76,8 @@ func (s *authServer) VerifyAuthentication(ctx context.Context, req *Authenticati
 	}
 
 	// calculate g^s*y1^c and h^s*y2^c
-	expR1 := Mod(Pow(s.params.g, req.S)*Pow(y1, c), p)
-	expR2 := Mod(Pow(s.params.h, req.S)*Pow(y2, c), p)
+	expR1 := Mod(Pow(g, req.S)*Pow(y1, c), p)
+	expR2 := Mod(Pow(h, req.S)*Pow(y2, c), p)
 
 	fmt.Printf("r1 = %v, expR1=%v, logR2=%v, expR2=%v\n", r1, expR1, r2, expR2)
 
@@ -98,12 +88,7 @@ func (s *authServer) VerifyAuthentication(ctx context.Context, req *Authenticati
 	return nil, fmt.Errorf("failed to verify authentication")
 }
 
-func NewServer(dbPath string, g, h, q int64) AuthServer {
-	pp := protocolParams{
-		g: g,
-		h: h,
-		q: q,
-	}
+func NewServer(dbPath string) AuthServer {
 	ls := make(map[uuid.UUID]*loginSession)
-	return &authServer{dbPath: dbPath, loginSessions: ls, params: pp}
+	return &authServer{dbPath: dbPath, loginSessions: ls}
 }

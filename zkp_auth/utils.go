@@ -13,3 +13,7 @@ func Mod(a, m int64) int64 {
 	}
 	return r
 }
+
+func calculateCommitment(exp int64) (int64, int64) {
+	return Mod(Pow(g, exp), p), Mod(Pow(h, exp), p)
+}

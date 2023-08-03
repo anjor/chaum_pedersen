@@ -4,11 +4,13 @@ import (
 	"chaum_pedersen/zkp_auth"
 	"fmt"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"log"
 )
 
 func main() {
-	conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
+	s := "zkp_auth_server:50051"
+	conn, err := grpc.Dial(s, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}

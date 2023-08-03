@@ -9,6 +9,8 @@ RUN go mod download
 COPY zkp_auth ./zkp_auth
 COPY client ./client
 
+RUN apt-get update && apt-get install -y netcat-openbsd coreutils
+
 RUN GOOS=linux go build -o ./client ./client/client.go
 
-CMD ["./client/client"]
+CMD ["./client/wait-for-server.sh", "zkp_auth_server", "50051", "./client/client"]

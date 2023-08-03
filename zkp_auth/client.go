@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"math/rand"
 )
 
 func Register(client AuthClient, user string, secret int64) error {
@@ -21,7 +20,7 @@ func Register(client AuthClient, user string, secret int64) error {
 
 func Login(client AuthClient, user string, secret int64) (string, error) {
 	// Commitment step
-	k := Mod(rand.Int63(), q) + 1
+	k := generateRandom()
 
 	cr, err := commit(client, user, k)
 	if err != nil {
@@ -45,7 +44,7 @@ func commit(client AuthClient, user string, k int64) (*AuthenticationChallengeRe
 }
 
 func respond(client AuthClient, authId string, k, c, secret int64) (string, error) {
-	s := Mod(k-c*secret, q)
+	s := mod(k-c*secret, q)
 	verifyRequest := &AuthenticationAnswerRequest{
 		AuthId: authId,
 		S:      s,

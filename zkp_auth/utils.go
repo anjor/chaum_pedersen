@@ -1,12 +1,15 @@
 package zkp_auth
 
-import "math"
+import (
+	"math"
+	"math/rand"
+)
 
-func Pow(a, b int64) int64 {
+func pow(a, b int64) int64 {
 	return int64(math.Pow(float64(a), float64(b)))
 }
 
-func Mod(a, m int64) int64 {
+func mod(a, m int64) int64 {
 	r := a % m
 	if r < 0 {
 		return r + m
@@ -15,5 +18,9 @@ func Mod(a, m int64) int64 {
 }
 
 func calculateCommitment(exp int64) (int64, int64) {
-	return Mod(Pow(g, exp), p), Mod(Pow(h, exp), p)
+	return mod(pow(g, exp), p), mod(pow(h, exp), p)
+}
+
+func generateRandom() int64 {
+	return int64(rand.Intn(10) + 1)
 }

@@ -17,9 +17,9 @@ func TestPow(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		result := Pow(tc.a, tc.b)
+		result := pow(tc.a, tc.b)
 		if result != tc.expected {
-			t.Errorf("Pow(%d, %d) = %d; expected %d", tc.a, tc.b, result, tc.expected)
+			t.Errorf("pow(%d, %d) = %d; expected %d", tc.a, tc.b, result, tc.expected)
 		}
 	}
 }
@@ -37,9 +37,9 @@ func TestMod(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		result := Mod(tc.a, tc.m)
+		result := mod(tc.a, tc.m)
 		if result != tc.expected {
-			t.Errorf("Mod(%d, %d) = %d; expected %d", tc.a, tc.m, result, tc.expected)
+			t.Errorf("mod(%d, %d) = %d; expected %d", tc.a, tc.m, result, tc.expected)
 		}
 	}
 }
